@@ -1,16 +1,17 @@
 import streamlit as st
-from openai import OpenAI
+import google.generativeai as genai
 import time
+
+# Configuration - PUT YOUR GEMINI API KEY HERE
+GEMINI_API_KEY = "YOUR_API_KEY_HERE"  # Replace with your actual key
+genai.configure(api_key=GEMINI_API_KEY)
 
 # Set up the app
 st.set_page_config(page_title="Insurance Chatbot", page_icon="🤖")
-st.title("🤖 Insurance Policy Assistant")
+st.title("🤖 Insurance Policy Assistant (Gemini)")
 st.caption("Ask me about health, auto, or home insurance policies!")
 
-# Initialize OpenAI client - PASTE YOUR API KEY HERE
-client = OpenAI(api_key="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")
-
-# Sample insurance knowledge base
+# Insurance knowledge base
 INSURANCE_KNOWLEDGE = """
 ## Health Insurance
 - Annual deductible: $1,500 individual / $3,000 family
@@ -37,6 +38,9 @@ INSURANCE_KNOWLEDGE = """
 4. Claim decision within 5 business days
 """
 
+# Initialize Gemini model
+model = genai.GenerativeModel('gemini-pro')
+
 # Initialize chat history
 if "messages" not in st.session_state:
     st.session_state.messages = [
@@ -50,30 +54,27 @@ for message in st.session_state.messages:
 
 # Function to get chatbot response
 def get_ai_response(user_query):
-    system_prompt = f"""
+    prompt = f"""
     You are a knowledgeable insurance assistant. Use this information to answer questions:
     {INSURANCE_KNOWLEDGE}
     
     Rules:
     - Be polite and professional
-    - If you don't know the answer, say "I'm not sure about that, let me connect you with a human agent"
+    - If unsure, say "Let me connect you with a human agent"
     - Keep answers concise but helpful
-    - For premium questions, explain factors that affect pricing
+    - Explain factors that affect pricing
+    
+    Current conversation history:
+    {st.session_state.messages}
+    
+    User question: {user_query}
     """
     
     try:
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                *[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages],
-                {"role": "user", "content": user_query}
-            ],
-            temperature=0.3
-        )
-        return response.choices[0].message.content
+        response = model.generate_content(prompt)
+        return response.text
     except Exception as e:
-        return f"Sorry, I'm having trouble responding. Error: {str(e)}"
+        return f"Error: {str(e)}"
 
 # Chat input
 if prompt := st.chat_input("Ask your insurance question..."):
@@ -89,8 +90,10 @@ if prompt := st.chat_input("Ask your insurance question..."):
         message_placeholder = st.empty()
         full_response = ""
         
-        # Simulate streaming response
+        # Get response
         ai_response = get_ai_response(prompt)
+        
+        # Simulate streaming
         for chunk in ai_response.split():
             full_response += chunk + " "
             time.sleep(0.05)
@@ -110,7 +113,6 @@ with st.sidebar:
        - Claims process
        - Premiums
        - Deductibles
-    3. Complex questions will be escalated
     """)
     
     st.markdown("## Sample Questions")
@@ -118,8 +120,7 @@ with st.sidebar:
     - What's my health insurance deductible?
     - Does auto insurance cover rental cars?
     - How do I file a home insurance claim?
-    - What affects my premium rates?
     """)
     
     st.markdown("---")
-    st.caption("Note: This is a demo chatbot. For actual policy details, please consult your documents.")
+    st.caption("Note: This is a demo chatbot using Gemini AI")
