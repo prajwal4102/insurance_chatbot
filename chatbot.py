@@ -39,7 +39,7 @@ INSURANCE_KNOWLEDGE = """
 """
 
 # Initialize Gemini model
-model = genai.GenerativeModel('gemini-pro')
+model = genai.GenerativeModel('gemini-1.5-flash-latest')
 
 # Initialize chat history
 if "messages" not in st.session_state:
