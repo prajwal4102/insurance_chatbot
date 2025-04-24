@@ -3,7 +3,7 @@ import google.generativeai as genai
 import time
 
 # Configuration - PUT YOUR GEMINI API KEY HERE
-GEMINI_API_KEY = "YOUR_API_KEY_HERE"  # Replace with your actual key
+GEMINI_API_KEY = "AIzaSyAKUDasjpMc_uui8Ny1PZxhR-JSI6QsG9E"  # Replace with your actual key
 genai.configure(api_key=GEMINI_API_KEY)
 
 # Set up the app
